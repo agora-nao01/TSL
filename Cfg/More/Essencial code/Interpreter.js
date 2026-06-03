@@ -2,8 +2,8 @@ const fs = require("fs");
 
 // 1. lê config de linguagem + geral.json sempre ativo
 function loadLanguage(lang) {
-    const geralPath = "repo/cfg/language/geral.json";
-    const langPath = `repo/cfg/language/${lang.toLowerCase()}.json`;
+    const geralPath = "Cfg/Language/geral.json";
+    const langPath = `Cfg/Language/${lang.toLowerCase()}.json`;
 
     let geral = {};
     let specific = {};
@@ -136,10 +136,9 @@ function run(input, data) {
 // =====================
 
 const raw = fs.readFileSync(
-    "repo/excode/exampleptbr.tnl",
+    "Excode/exampleptbr.tnl",
     "utf-8"
 );
 
-const data = parseTNL(raw);
-
-run("oi", data);
+const input = process.argv[2];
+run(input, data);
