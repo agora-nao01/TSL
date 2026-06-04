@@ -136,7 +136,7 @@ function run(input, data) {
 // =====================
 
 const raw = fs.readFileSync(
-    "Excode/exampleptbr.tnl",
+    "Excode/Exampleptbr.tnl",
     "utf-8"
 );
 
