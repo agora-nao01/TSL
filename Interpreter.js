@@ -41,10 +41,62 @@ function applyRepeats(text) {
 
 // 4. parse do .tnl
 function parseTNL(raw) {
-    const lines = raw
-        .split("\n")
+    const lines = splitTNL(raw)
         .map(l => l.trim())
         .filter(Boolean);
+
+    let lang = "";
+    let dict = {};
+    let prefix = "";
+    let rules = [];
+
+    for (let line of lines) {
+
+        // primeira linha = linguagem
+        if (!lang) {
+            lang = line;
+            dict = loadLanguage(lang);
+            continue;
+        }
+
+        // prefixo
+        if (line.startsWith("Prefix:")) {
+            prefix = line.substring(7).trim();
+            continue;
+        }
+
+        // regra If
+        if (line.startsWith("If")) {
+            const match = line.match(/If"(.*)"/);
+
+            if (match) {
+                rules.push({
+                    input: match[1],
+                    output: ""
+                });
+            }
+
+            continue;
+        }
+
+        // saída
+        if (line.startsWith("S")) {
+            const match = line.match(/S"(.*)"/);
+
+            if (match && rules.length) {
+                rules[rules.length - 1].output = match[1];
+            }
+
+            continue;
+        }
+    }
+
+    return {
+        dict,
+        prefix,
+        rules
+    };
+}
 
     let lang = "";
     let dict = {};
