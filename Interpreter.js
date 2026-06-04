@@ -140,5 +140,7 @@ const raw = fs.readFileSync(
     "utf-8"
 );
 
+const data = parseTNL(raw);
+
 const input = process.argv[2];
 run(input, data);
