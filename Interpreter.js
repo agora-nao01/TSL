@@ -18,28 +18,51 @@ function loadLanguage(lang) {
         throw new Error(`Linguagem não encontrada: ${lang}`);
     }
 
-    // O idioma específico sobrescreve o geral em caso de conflito
     return {
         ...geral,
         ...specific
     };
 }
 
-// 2. aplica abreviações (SEM exceção)
+// 2. aplica abreviações (¶)
 function applyAbbreviations(text, dict) {
     return text.replace(/¶([a-zA-Z0-9_]+)/g, (_, key) => {
         return dict[key] ?? `¶${key}`;
     });
 }
 
-// 3. processa repetição (PARENTÊSES)
+// 3. repetição
 function applyRepeats(text) {
     return text.replace(/\((.*?)\)(\d+)/g, (_, content, count) => {
         return content.repeat(Number(count));
     });
 }
 
-// 4. parse do .tnl
+// 4. split seguro (quebra linha fora de string)
+function splitTNL(raw) {
+    const lines = [];
+    let current = "";
+    let insideString = false;
+
+    for (let i = 0; i < raw.length; i++) {
+        const char = raw[i];
+
+        if (char === '"') insideString = !insideString;
+
+        if (char === "\n" && !insideString) {
+            lines.push(current.trim());
+            current = "";
+        } else {
+            current += char;
+        }
+    }
+
+    if (current.trim()) lines.push(current.trim());
+
+    return lines;
+}
+
+// 5. parse do .tnl
 function parseTNL(raw) {
     const lines = splitTNL(raw)
         .map(l => l.trim())
@@ -52,121 +75,51 @@ function parseTNL(raw) {
 
     for (let line of lines) {
 
-        // primeira linha = linguagem
         if (!lang) {
             lang = line;
             dict = loadLanguage(lang);
             continue;
         }
 
-        // prefixo
         if (line.startsWith("Prefix:")) {
             prefix = line.substring(7).trim();
             continue;
         }
 
-        // regra If
         if (line.startsWith("If")) {
             const match = line.match(/If"(.*)"/);
-
             if (match) {
                 rules.push({
                     input: match[1],
                     output: ""
                 });
             }
-
             continue;
         }
 
-        // saída
         if (line.startsWith("S")) {
             const match = line.match(/S"(.*)"/);
-
             if (match && rules.length) {
                 rules[rules.length - 1].output = match[1];
             }
-
             continue;
         }
     }
 
-    return {
-        dict,
-        prefix,
-        rules
-    };
+    return { dict, prefix, rules };
 }
 
-    let lang = "";
-    let dict = {};
-    let prefix = "";
-    let rules = [];
-
-    for (let line of lines) {
-
-        // primeira linha = linguagem
-        if (!lang) {
-            lang = line;
-            dict = loadLanguage(lang);
-            continue;
-        }
-
-        // prefixo
-        if (line.startsWith("Prefix:")) {
-            prefix = line.substring(7).trim();
-            continue;
-        }
-
-        // regra If
-        if (line.startsWith("If")) {
-            const match = line.match(/If"(.*)"/);
-
-            if (match) {
-                rules.push({
-                    input: match[1],
-                    output: ""
-                });
-            }
-
-            continue;
-        }
-
-        // saída
-        if (line.startsWith("S")) {
-            const match = line.match(/S"(.*)"/);
-
-            if (match && rules.length) {
-                rules[rules.length - 1].output = match[1];
-            }
-
-            continue;
-        }
-    }
-
-    return {
-        dict,
-        prefix,
-        rules
-    };
-}
-
-// 5. executa input
+// 6. execução
 function run(input, data) {
-
     for (const rule of data.rules) {
 
         if (
             input === rule.input ||
             input === data.prefix + rule.input
         ) {
-
             let output = rule.output;
 
-            // repetições primeiro
             output = applyRepeats(output);
-
-            // abreviações depois
             output = applyAbbreviations(output, data.dict);
 
             console.log(output);
