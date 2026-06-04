@@ -27,14 +27,9 @@ function loadLanguage(lang) {
 
 // 2. aplica abreviações (SEM exceção)
 function applyAbbreviations(text, dict) {
-    for (let short in dict) {
-        const full = dict[short];
-
-        // replace global seguro
-        text = text.split(short).join(full);
-    }
-
-    return text;
+    return text.replace(/¶([a-zA-Z0-9_]+)/g, (_, key) => {
+        return dict[key] ?? `¶${key}`;
+    });
 }
 
 // 3. processa repetição (PARENTÊSES)
